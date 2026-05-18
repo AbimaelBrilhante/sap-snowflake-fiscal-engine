@@ -1,0 +1,26 @@
+version: 2
+
+models:
+  - name: stg_sap__parceiros_dedup
+    description: "Cleansed and deduplicated partner records from SAP KNA1 core table."
+    columns:
+      - name: cnpj_base
+        description: "The base CNPJ extracted and trimmed from STCD1."
+        tests:
+          - not_null
+      - name: row_num
+        description: "Analytical index used to filter out duplicate state registrations. row_num = 1 represents the unique base record."
+        tests:
+          - not_null
+
+  - name: stg_sap__impostos_nf
+    description: "Pivoted tax metrics sourced from transactional table J_1BNFSTX aggregated by invoice and line item."
+    columns:
+      - name: docnum
+        description: "Composite primary key component: SAP internal document number."
+        tests:
+          - not_null
+      - name: itemnum
+        description: "Composite primary key component: Invoice line item sequence."
+        tests:
+          - not_null

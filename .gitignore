@@ -1,0 +1,10 @@
+# dbt cleanliness
+logs/
+target/
+dbt_packages/
+dbt_modules/
+
+# Environment configurations (just in case)
+.env
+*.db
+*.log

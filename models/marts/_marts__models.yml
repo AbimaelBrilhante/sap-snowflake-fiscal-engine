@@ -1,0 +1,22 @@
+version: 2
+
+models:
+  - name: fct_faturamento_notas_fiscais
+    description: "Fact table consolidating SAP S/4HANA transactional billing and tax engines for corporate BI consumption and financial auditing."
+    columns:
+      - name: docnum
+        description: "Primary key: SAP Invoice Unique Internal Document Number Identifier."
+        tests:
+          - not_null
+      - name: item_documento
+        description: "Line item sequence within the invoice document."
+        tests:
+          - not_null
+      - name: chave_acesso_nfe
+        description: "44-digit electronic regulatory access key containing regional code, payload metadata, timestamp, and serial numbers."
+        tests:
+          - not_null
+      - name: valor_liquido_item
+        description: "Net operational item value before tax applications."
+        tests:
+          - not_null

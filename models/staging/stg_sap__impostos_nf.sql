@@ -1,0 +1,72 @@
+WITH source_j1bnfstx AS (
+    SELECT * FROM RAW.HANA_S4P.J_1BNFSTX
+),
+
+aggregated_taxes AS (
+    SELECT
+        DOCNUM AS docnum,
+        ITMNUM AS itemnum,
+        SUM(CASE WHEN TAXTYP IN ('ICM2', 'CIC0', 'ZIZF', 'ZCM3', 'ZCMI', 'ZIC3', 'CIC1', 'ICM1', 'ICM3', 'ICM0', 'ZIC0', 'ICZF', 'ICZG', 'ZZFD') THEN BASE ELSE 0 END) AS base_icms,
+        SUM(CASE WHEN TAXTYP IN ('ICM2', 'CIC0', 'ZIZF', 'ZCM3', 'ZCMI', 'ZIC3', 'CIC1', 'ICM1', 'ICM3', 'ICM0', 'ZIC0', 'ICZF', 'ICZG', 'ZZFD') THEN TAXVAL ELSE 0 END) AS icms_contabil,
+        SUM(CASE WHEN TAXTYP IN ('ICM2', 'CIC0', 'ZIZF', 'ZCM3', 'ZCMI', 'ZIC3', 'CIC1', 'ICM1', 'ICM3', 'ICM0', 'ZIC0') THEN TAXVAL ELSE 0 END) AS icms_calculado,
+        SUM(CASE WHEN TAXTYP IN ('FCP2', 'FCP3', 'FCPO', 'ICSC', 'FCP1') THEN BASE ELSE 0 END) AS base_fecp_difal,
+        SUM(CASE WHEN TAXTYP IN ('FCP2', 'FCP3', 'FCPO', 'ICSC', 'FCP1') THEN TAXVAL ELSE 0 END) AS cont_icms_fecp_difal,
+        SUM(CASE WHEN TAXTYP IN ('ICOP', 'ZCOZ', 'ZCOP') THEN BASE ELSE 0 END) AS base_difal,
+        SUM(CASE WHEN TAXTYP IN ('ICOP', 'ZCOZ', 'ZCOP') THEN TAXVAL ELSE 0 END) AS cont_difal,
+        SUM(CASE WHEN TAXTYP = 'ICEP' THEN TAXVAL ELSE 0 END) AS icms_st_uf_destino,
+        SUM(CASE WHEN TAXTYP = 'ICSP' THEN BASE ELSE 0 END) AS base_icms_fun,
+        SUM(CASE WHEN TAXTYP = 'ICSP' THEN TAXVAL ELSE 0 END) AS icms_fun,
+        SUM(CASE WHEN TAXTYP = 'ICAP' THEN TAXVAL ELSE 0 END) AS icms_destino,
+        SUM(CASE WHEN TAXTYP IN ('ICZF', 'ICZG', 'ZZFD') THEN TAXVAL ELSE 0 END) AS desconto_zfm,
+        SUM(CASE WHEN TAXTYP = '8BII' THEN BASE ELSE 0 END) AS imposto_importacao,
+        SUM(CASE WHEN TAXTYP IN ('ICS3', 'ICST', 'ICS1', 'CST2', 'ZS2I', 'ICS2', 'ZCS1', 'ZPSI', 'ZPS3') THEN BASE ELSE 0 END) AS base_icms_st,
+        SUM(CASE WHEN TAXTYP IN ('ICS3', 'ICST', 'ICS1', 'CST2', 'ZS2I', 'ICS2', 'ZCS1', 'ZPSI', 'ZPS3') THEN TAXVAL ELSE 0 END) AS cont_icms_st,
+        SUM(CASE WHEN TAXTYP IN ('FPSO', 'FPS2', 'FPS1', 'ICFP', 'ZPS3', 'ZPS2', 'ZPSI') THEN BASE ELSE 0 END) AS base_icms_st_fecp,
+        SUM(CASE WHEN TAXTYP IN ('FPSO', 'FPS2', 'FPS1', 'ICFP', 'ZPS3', 'ZPS2', 'ZPSI') THEN TAXVAL ELSE 0 END) AS cont_icms_st_fecp,
+        SUM(CASE WHEN TAXTYP IN ('IPIB', 'IPI3', 'IPI2', 'IPI1', 'IPI0', 'IPIO') THEN BASE ELSE 0 END) AS base_ipi,
+        SUM(CASE WHEN TAXTYP IN ('IPIB', 'IPI3', 'IPI2', 'IPI1', 'IPI0', 'IPIO') AND STATTX <> 'X' THEN TAXVAL ELSE 0 END) AS cont_ipi,
+        SUM(CASE WHEN TAXTYP IN ('ICOS', 'ICOV', 'ZCSF', 'COF0', '8BCD', 'ICON', 'ICOF', 'ZCOV') AND STATTX <> 'X' THEN BASE ELSE 0 END) AS base_coﬁns,
+        SUM(CASE WHEN TAXTYP IN ('ICOS', 'ICOV', 'ZCSF', 'COF0', '8BCD', 'ICON', 'ICOF', 'ZCOV') THEN TAXVAL ELSE 0 END) AS cont_coﬁns,
+        SUM(CASE WHEN TAXTYP IN ('PIS0', 'IPIS', 'IPS3', 'IPSN', 'ZPVF', 'IPSV', 'ZPSV') AND STATTX <> 'X' THEN BASE ELSE 0 END) AS base_pis,
+        SUM(CASE WHEN TAXTYP IN ('PIS0', 'IPIS', 'IPS3', 'IPSN', 'ZPVF', 'IPSV', 'ZPSV') THEN TAXVAL ELSE 0 END) AS cont_pis,
+        SUM(CASE WHEN TAXTYP IN ('ICM2', 'CIC0', 'ZIZF', 'ZCM3', 'ZCMI', 'ZIC3', 'CIC1', 'ICM1', 'ICM3', 'ICM0', 'ZIC0', 'ICZF', 'ICZG', 'ZZFD') THEN OTHBAS ELSE 0 END) AS outras_icms,
+        SUM(CASE WHEN TAXTYP IN ('ICM2', 'CIC0', 'ZIZF', 'ZCM3', 'ZCMI', 'ZIC3', 'CIC1', 'ICM1', 'ICM3', 'ICM0', 'ZIC0', 'ICZF', 'ICZG', 'ZZFD') THEN EXCBAS ELSE 0 END) AS isentas_icms,
+        SUM(CASE WHEN TAXTYP IN ('ICS3', 'ICST', 'ICS1', 'CST2', 'ZS2I', 'ICS2', 'ZCS1', 'ZPSI', 'ZPS3') THEN OTHBAS ELSE 0 END) AS outras_st,
+        SUM(CASE WHEN TAXTYP IN ('ICS3', 'ICST', 'ICS1', 'CST2', 'ZS2I', 'ICS2', 'ZCS1', 'ZPSI', 'ZPS3') THEN EXCBAS ELSE 0 END) AS isentas_st,
+        SUM(CASE WHEN TAXTYP IN ('IPIB', 'IPI3', 'IPI2', 'IPI1', 'IPI0', 'IPIO') THEN OTHBAS ELSE 0 END) AS outras_ipi,
+        SUM(CASE WHEN TAXTYP IN ('IPIB', 'IPI3', 'IPI2', 'IPI1', 'IPI0', 'IPIO') THEN EXCBAS ELSE 0 END) AS isentas_ipi,
+        SUM(CASE WHEN TAXTYP IN ('IRRF', 'IIRQ', 'IRWO', 'IIRW', 'IGEW') THEN TAXVAL ELSE 0 END) AS irpf_retido,
+        SUM(CASE WHEN TAXTYP IN ('INSS', 'WACO', 'WACS', 'WHCO', 'WHCS') THEN TAXVAL ELSE 0 END) AS trio_retido
+    FROM source_j1bnfstx
+    GROUP BY DOCNUM, ITMNUM
+)
+
+SELECT
+    docnum,
+    itemnum,
+    base_icms,
+    icms_contabil,
+    CASE WHEN base_icms > 0 THEN icms_calculado ELSE 0 END AS icms_calculado,
+    CASE WHEN base_fecp_difal > 0 THEN cont_icms_fecp_difal ELSE 0 END AS valor_fecp_difal,
+    CASE WHEN base_difal > 0 THEN cont_difal ELSE 0 END AS valor_difal,
+    icms_st_uf_destino,
+    base_icms_fun,
+    icms_fun,
+    icms_destino,
+    desconto_zfm,
+    (CASE WHEN base_icms > 0 THEN icms_calculado ELSE 0 END) + (CASE WHEN base_fecp_difal > 0 THEN cont_icms_fecp_difal ELSE 0 END) AS icms_fecp,
+    imposto_importacao,
+    CASE WHEN base_icms_st > 0 THEN cont_icms_st ELSE 0 END AS valor_icms_st,
+    CASE WHEN base_icms_st_fecp > 0 THEN cont_icms_st_fecp ELSE 0 END AS valor_icms_st_fecp,
+    CASE WHEN base_ipi > 0 THEN cont_ipi ELSE 0 END AS valor_ipi,
+    CASE WHEN base_coﬁns > 0 THEN cont_coﬁns ELSE 0 END AS valor_coﬁns,
+    CASE WHEN base_pis > 0 THEN cont_pis ELSE 0 END AS valor_pis,
+    outras_icms,
+    isentas_icms,
+    outras_st,
+    isentas_st,
+    outras_ipi,
+    isentas_ipi,
+    irpf_retido,
+    trio_retido
+FROM aggregated_taxes

@@ -1,5 +1,5 @@
 WITH source_kna1 AS (
-    SELECT * FROM RAW.HANA_S4P.KNA1
+    SELECT * FROM RAW.HANA_S4P.KNA1 --
 ),
 
 deduplicated AS (
